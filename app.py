@@ -1,10 +1,10 @@
 import seaborn as sns
 
 # Import data from shared.py
-from shared import df
+#from shared import df
 
 from shiny import App, render, ui
-
+"""
 app_ui = ui.page_sidebar(
     ui.sidebar(
         ui.input_radio_buttons("graph_shapes", "グラフの種類", choices=["なめらか", "あらめ"]),
@@ -18,7 +18,6 @@ app_ui = ui.page_sidebar(
     title="Hello sidebar!",
 )
 
-
 def server(input, output, session):
     @render.plot
     def histgram():
@@ -29,7 +28,16 @@ def server(input, output, session):
             sns.kdeplot(df, x=input.val(), hue=hue)
         if input.show_rug():
             sns.rugplot(df, x=input.val(), hue=hue, color="black", alpha=0.25)
+"""
+app_ui = ui.page_fluid(
+    ui.input_slider("slider", "Slider", min=0, max=100, value=[35, 65]),  
+    ui.output_text_verbatim("value"),
+)
 
+def server(input, output, session):
+    @render.text
+    def value():
+        return f"{input.slider()}"
 
 app = App(app_ui, server)
 
