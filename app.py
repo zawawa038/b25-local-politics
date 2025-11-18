@@ -10,10 +10,10 @@ app_ui = ui.page_sidebar(
     ui.sidebar(
         
         ui.input_select(
-            "val", "項目を選択", choices=["投票率", "有権者数", "定数比", "有権者数（男女別）"], selected=None
+        "val", "項目を選択", choices=["投票率", "有権者数", "定数比", "有権者数（男女別）"], selected=None
         ),
         ui.input_select(
-            "val", "項目を選択", choices=["投票率", "有権者数", "定数比", "有権者数（男女別）"], selected=None
+        "val", "項目を選択", choices=["投票率", "有権者数", "定数比", "有権者数（男女別）"], selected=None
         ),
     ),    
     ui.output_plot("histgram"),
@@ -56,7 +56,7 @@ sample_data = pd.DataFrame({
 "羽曳野市", "阪南市","東大阪市", "枚方市", "藤井寺市",
 "松原市", "岬町", "箕面市", "守口市",
 "八尾市"],#一応あいうえお順です
-    'category': ['', '果物', '人名', '果物', '人名', '果物', '人名', '果物', '人名', '果物']
+    'category': ['人名', '果物', '人名', '果物', '人名', '果物', '人名', '果物', '人名', '果物']
 })
 
 # データから実際に存在する頭文字を抽出
