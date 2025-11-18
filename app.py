@@ -9,10 +9,10 @@ app_ui = ui.page_sidebar(
     ui.sidebar(
         
         ui.input_select(
-            "val", "変数を選択", choices=["投票率", "有権者数", "定数比", "有権者数（男女別）"], selected=None
+            "val", "項目を選択", choices=["投票率", "有権者数", "定数比", "有権者数（男女別）"], selected=None
         ),
         ui.input_select(
-            "val", "変数を選択", choices=["投票率", "有権者数", "定数比", "有権者数（男女別）"], selected=None
+            "val", "項目を選択", choices=["投票率", "有権者数", "定数比", "有権者数（男女別）"], selected=None
         ),
         
     ui.output_plot("histgram"),
