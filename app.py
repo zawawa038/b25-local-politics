@@ -4,8 +4,8 @@ import seaborn as sns
 #from shared import df
 
 from shiny import App, render, ui
-"""
-＃選択項目
+
+#選択項目
 app_ui = ui.page_sidebar(
     ui.sidebar(
         
@@ -15,7 +15,7 @@ app_ui = ui.page_sidebar(
         ui.input_select(
             "val", "項目を選択", choices=["投票率", "有権者数", "定数比", "有権者数（男女別）"], selected=None
         ),
-        
+    ),    
     ui.output_plot("histgram"),
     title="大阪の政治",
 )
@@ -30,7 +30,7 @@ def server(input, output, session):
             sns.kdeplot(df, x=input.val(), hue=hue)
         if input.show_rug():
             sns.rugplot(df, x=input.val(), hue=hue, color="black", alpha=0.25)
-"""
+
 app_ui = ui.page_fluid(
     ui.input_slider("slider", "Slider", min=0, max=100, value=[35, 65]),  
     ui.output_text_verbatim("value"),
