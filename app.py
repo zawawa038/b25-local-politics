@@ -7,13 +7,14 @@ from shiny import App, render, ui
 """
 app_ui = ui.page_sidebar(
     ui.sidebar(
-        ui.input_radio_buttons("graph_shapes", "グラフの種類", choices=["なめらか", "あらめ"]),
+        
         ui.input_select(
-            "val", "変数を選択", choices=["bill_length_mm", "body_mass_g", "island", "flipper_length_mm", "sex"], selected=None
+            "val", "変数を選択", choices=["投票率", "有権者数", "定数比", "有権者数（男女別）"], selected=None
         ),
-        ui.input_switch("sex", "性別", value=True),
-        ui.input_switch("show_rug", "Show Rug", value=False),
-    ),
+        ui.input_select(
+            "val", "変数を選択", choices=["投票率", "有権者数", "定数比", "有権者数（男女別）"], selected=None
+        ),
+        
     ui.output_plot("histgram"),
     title="Hello sidebar!",
 )
