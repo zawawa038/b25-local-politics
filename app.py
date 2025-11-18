@@ -5,6 +5,7 @@ import seaborn as sns
 
 from shiny import App, render, ui
 """
+＃選択項目
 app_ui = ui.page_sidebar(
     ui.sidebar(
         
@@ -16,7 +17,7 @@ app_ui = ui.page_sidebar(
         ),
         
     ui.output_plot("histgram"),
-    title="Hello sidebar!",
+    title="大阪の政治",
 )
 
 def server(input, output, session):
@@ -47,8 +48,15 @@ from shiny import App, reactive, render, ui
 import pandas as pd
 
 sample_data = pd.DataFrame({
-    'name': ['田中太郎', 'アップル', '佐藤花子', 'バナナ', '山田次郎', 'オレンジ', '鈴木一郎', 'グレープ', '中村美子', 'パイナップル'],
-    'category': ['人名', '果物', '人名', '果物', '人名', '果物', '人名', '果物', '人名', '果物']
+    'name': ["池田市", "泉大津市", "泉佐野市", "和泉市", "茨木市", "大阪狭山市", "大阪市",
+	"貝塚市", "柏原市", "交野市", "門真市", "河南町", "河内長野市", "岸和田市", "熊取町",
+"堺市", "四條畷市", "島本町", "吹田市", "摂津市", "泉南市",
+"太子町", "大東市", "高石市", "高槻市", "田尻町", "忠岡町", "千早赤阪村", "豊中市", "豊能町","富田林市",
+"寝屋川市", "能勢町",
+"羽曳野市", "阪南市","東大阪市", "枚方市", "藤井寺市",
+"松原市", "岬町", "箕面市", "守口市",
+"八尾市"],#一応あいうえお順です
+    'category': ['', '果物', '人名', '果物', '人名', '果物', '人名', '果物', '人名', '果物']
 })
 
 # データから実際に存在する頭文字を抽出
@@ -62,7 +70,7 @@ def get_initial_chars(data):
 available_initials = get_initial_chars(sample_data)
 
 app_ui = ui.page_fluid(
-    ui.h2("動的頭文字検索"),
+    ui.h2("頭文字検索"),
     ui.div(
         ui.h4("利用可能な頭文字:"),
         ui.output_ui("dynamic_buttons"),
