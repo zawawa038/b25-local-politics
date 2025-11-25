@@ -9,6 +9,9 @@ from shiny import App, render, ui
 from shiny import App, reactive, render, ui
 import pandas as pd
 
+from shiny import App, reactive, render, ui
+import pandas as pd
+
 # 大阪府の市町村データ
 municipalities_data = [
     # 市
@@ -41,10 +44,10 @@ municipalities_data = [
     {"name": "交野市", "reading": "かたのし", "type": "市"},
     {"name": "大阪狭山市", "reading": "おおさかさやまし", "type": "市"},
     {"name": "阪南市", "reading": "はんなんし", "type": "市"},
-    {"name":"泉佐野市","reading":"いずみさのし","type":"市"},
-    {"name":"富田林市","reading":"とんだばやしし","type":"市"},
-    {"name":"河内長野市","reading":"かわちながのし","type":"市"},
-    {"name":"松原市","reading":"まつばらし","type":"市"},
+    {"name": "泉佐野市", "reading": "いずみさのし", "type": "市"},
+    {"name": "富田林市", "reading": "とんだばやしし", "type": "市"},
+    {"name": "河内長野市", "reading": "かわちながのし", "type": "市"},
+    {"name": "松原市", "reading": "まつばらし", "type": "市"},
     
     # 町村
     {"name": "島本町", "reading": "しまもとちょう", "type": "町"},
@@ -60,7 +63,6 @@ municipalities_data = [
 ]
 
 municipalities_df = pd.DataFrame(municipalities_data)
-#以下検索欄（頭文字＋市町村＋自由検索）
 
 app_ui = ui.page_sidebar(
     ui.sidebar(
@@ -78,8 +80,6 @@ app_ui = ui.page_sidebar(
                 "は": "は行",
                 "ま": "ま行",
                 "や": "や行",
-                "ら": "ら行",
-                "わ": "わ行",
             },
             selected=""
         ),
@@ -103,13 +103,15 @@ app_ui = ui.page_sidebar(
         ui.br(),
         ui.p(f"総登録数: {len(municipalities_df)}件")
     ),
+    #アプリタイトル
+    ui.div(
+        ui.h1("🗳️ 大阪府の選挙情報", 
+              style="text-align: center; color: #1e40af; margin-bottom: 30px; padding: 20px; background-color: #f1f5f9; border-radius: 10px;"),
+        style="margin-bottom: 20px;"
+    ),
     ui.card(
         ui.card_header("検索結果"),
         ui.output_data_frame("municipalities_table")
-    ),
-    ui.card(
-        ui.card_header("選択した市町村"),
-        ui.output_ui("selected_municipality_info")
     )
 )
 
@@ -120,7 +122,7 @@ def server(input, output, session):
         
         # 頭文字による絞り込み
         if input.initial_letter():
-            # ひらがなの行による分類
+            # ひらがなの行による分類（ら行・わ行を除去）
             hiragana_ranges = {
                 "あ": ["あ", "い", "う", "え", "お"],
                 "か": ["か", "き", "く", "け", "こ", "が", "ぎ", "ぐ", "げ", "ご"],
@@ -130,8 +132,6 @@ def server(input, output, session):
                 "は": ["は", "ひ", "ふ", "へ", "ほ", "ば", "び", "ぶ", "べ", "ぼ", "ぱ", "ぴ", "ぷ", "ぺ", "ぽ"],
                 "ま": ["ま", "み", "む", "め", "も"],
                 "や": ["や", "ゆ", "よ"],
-                "ら": ["ら", "り", "る", "れ", "ろ"],
-                "わ": ["わ", "ゐ", "ゑ", "を", "ん"]
             }
             
             target_chars = hiragana_ranges.get(input.initial_letter(), [])
@@ -161,41 +161,6 @@ def server(input, output, session):
             summary=f"検索結果: {len(display_df)}件",
             selection_mode="row"  # 行選択を有効化
         )
-    
-    @render.ui
-    def selected_municipality_info():
-        # データテーブルの選択状態を取得
-        try:
-            selected_rows = input.municipalities_table_selected_rows()
-            
-            if not selected_rows or len(selected_rows) == 0:
-                return ui.div(
-                    ui.p("市町村を選択してください。"),
-                    ui.p("表の行をクリックして選択できます。"),
-                    style="color: #666; font-style: italic;"
-                )
-            
-            # 選択された行のデータを取得
-            filtered_df = filtered_municipalities()
-            selected_idx = selected_rows[0]
-            
-            if selected_idx < len(filtered_df):
-                selected_municipality = filtered_df.iloc[selected_idx]
-                
-                return ui.div(
-                    ui.h4(f"📍 {selected_municipality['name']}", style="color: #2563eb;"),
-                    ui.hr(),
-                    ui.div(
-                        ui.strong("✅ 選択完了"),
-                        ui.p(f"「{selected_municipality['name']}」が選択されました。"),
-                        style="color: #059669; background-color: #ecfdf5; padding: 10px; border-radius: 5px; border-left: 4px solid #10b981;"
-                    )
-                )
-            else:
-                return ui.p("選択データが見つかりません。")
-        
-        except Exception as e:
-            return ui.p(f"エラーが発生しました: {str(e)}")
 
 app = App(app_ui, server)
 
