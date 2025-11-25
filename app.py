@@ -4,45 +4,7 @@ import seaborn as sns
 #from shared import df
 
 from shiny import App, render, ui
-"""""
-#選択項目
-app_ui = ui.page_sidebar(
-    ui.sidebar(
-        
-        ui.input_select(
-        "val", "1つ目の項目を選択:", choices=["投票率", "有権者数", "定数比", "有権者数（男女別）"], selected=None
-        ),
-        ui.input_select(
-        "val", "2つ目の項目を選択:", choices=["投票率", "有権者数", "定数比", "有権者数（男女別）"], selected=None
-        ),
-    ),    
-    ui.output_plot("histgram"),
-    title="大阪の政治",
-)
 
-def server(input, output, session):
-    @render.plot
-    def histgram():
-        hue = "sex" if input.sex() else None
-        if input.graph_shapes()=="あらめ":
-            sns.displot(df, x=input.val(), hue=hue)
-        if input.graph_shapes()=="なめらか":
-            sns.kdeplot(df, x=input.val(), hue=hue)
-        if input.show_rug():
-            sns.rugplot(df, x=input.val(), hue=hue, color="black", alpha=0.25)
-
-app_ui = ui.page_fluid(
-    ui.input_slider("slider", "Slider", min=0, max=100, value=[35, 65]),  
-    ui.output_text_verbatim("value"),
-)
-
-def server(input, output, session):
-    @render.text
-    def value():
-        return f"{input.slider()}"
-
-app = App(app_ui, server)
-"""""
 #頭文字検索参考例
 from shiny import App, reactive, render, ui
 import pandas as pd
@@ -241,3 +203,143 @@ def server(input, output, session):
             return ui.p(f"エラーが発生しました: {str(e)}")
 
 app = App(app_ui, server)
+
+#選択項目
+from shiny import App, reactive, render, ui
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+# サンプルデータを生成する関数（今はいったんサンプルデータが入ってます）
+def generate_sample_data(start_year, end_year):
+    """指定された年度範囲でサンプル統計データを生成"""
+    years = list(range(start_year, end_year + 1))
+    np.random.seed(42)  # 再現可能な結果のため
+    
+    data = {
+        'year': years,
+        'turnout_rate': [45 + np.random.normal(0, 5) for _ in years],
+        'total_voters': [80000 + i * 2000 + np.random.normal(0, 3000) for i in range(len(years))],
+        'candidate_ratio': [1.5 + np.random.normal(0, 0.3) for _ in years],
+        'male_voters': [38000 + i * 1000 + np.random.normal(0, 1500) for i in range(len(years))],
+        'female_voters': [42000 + i * 1000 + np.random.normal(0, 1500) for i in range(len(years))]
+    }
+    
+    # 負の値を防ぐ
+    for key in ['turnout_rate', 'total_voters', 'candidate_ratio', 'male_voters', 'female_voters']:
+        if key == 'turnout_rate':
+            data[key] = [max(0, min(100, val)) for val in data[key]]  # 0-100%の範囲
+        elif key == 'candidate_ratio':
+            data[key] = [max(1.0, val) for val in data[key]]  # 最小1.0
+        else:
+            data[key] = [max(0, int(val)) for val in data[key]]  # 負の値を防ぐ
+    
+    return pd.DataFrame(data)
+#年度範囲
+app_ui = ui.page_sidebar(
+    ui.sidebar(
+        ui.h3("表示設定"),
+        ui.input_slider(
+            "year_range",
+            "表示年度範囲:",
+            min=2000,
+            max=2020,
+            value=[2010, 2020],
+            step=1,
+            sep=""
+        ),
+        ui.br(),
+        ui.input_checkbox_group(
+            "selected_metrics",
+            "表示する統計項目を選択してください:",
+            choices={
+                "turnout_rate": "投票率 (%)",
+                "total_voters": "有権者数 (人)",
+                "candidate_ratio": "定数比候補者数",
+                "male_voters": "有権者数（男性）",
+                "female_voters": "有権者数（女性）"
+            },
+            selected=["turnout_rate"]
+        ),
+        ui.br(),
+        ui.p("※ 複数項目を選択すると、それぞれ別のグラフで表示されます。"),
+        ui.p("※ データはサンプルデータです。")
+    ),
+    ui.card(
+        ui.card_header("統計データ推移グラフ"),
+        ui.output_plot("statistics_plot")
+    )
+)
+
+def server(input, output, session):
+    
+    @reactive.calc
+    def filtered_data():
+        """選択された年度範囲に基づいてデータを生成・フィルタリング"""
+        year_range = input.year_range()
+        start_year, end_year = year_range[0], year_range[1]
+        return generate_sample_data(start_year, end_year)
+    
+    @render.plot
+    def statistics_plot():
+        selected_metrics = input.selected_metrics()
+        data = filtered_data()
+        
+        if not selected_metrics:
+            fig, ax = plt.subplots(figsize=(10, 6))
+            ax.text(0.5, 0.5, '表示項目を選択してください', 
+                   ha='center', va='center', transform=ax.transAxes, fontsize=16)
+            ax.set_xlim(0, 1)
+            ax.set_ylim(0, 1)
+            ax.axis('off')
+            return fig
+        
+        # メトリクス名とラベルのマッピング
+        metric_labels = {
+            "turnout_rate": "投票率 (%)",
+            "total_voters": "有権者数 (人)",
+            "candidate_ratio": "定数比候補者数",
+            "male_voters": "有権者数（男性）",
+            "female_voters": "有権者数（女性）"
+        }
+        
+        colors = ['#2563eb', '#dc2626', '#059669', '#7c3aed', '#ea580c']
+        
+        # サブプロットを作成
+        fig, axes = plt.subplots(len(selected_metrics), 1, figsize=(12, 4 * len(selected_metrics)))
+        
+        if len(selected_metrics) == 1:
+            axes = [axes]
+        
+        for i, metric in enumerate(selected_metrics):
+            ax = axes[i]
+            
+            # 折れ線グラフを描画
+            ax.plot(data['year'], data[metric], 
+                   marker='o', linewidth=2.5, markersize=7, 
+                   color=colors[i % len(colors)], label=metric_labels[metric])
+            
+            year_range = input.year_range()
+            ax.set_title(f"{metric_labels[metric]}の推移 ({year_range[0]}年 - {year_range[1]}年)", 
+                        fontsize=14, fontweight='bold', pad=20)
+            ax.set_xlabel('年', fontsize=12)
+            ax.set_ylabel(metric_labels[metric], fontsize=12)
+            ax.grid(True, alpha=0.3)
+            ax.legend()
+            
+            # X軸の年表示を調整
+            ax.set_xlim(data['year'].min(), data['year'].max())
+            
+            # Y軸の値をフォーマット
+            if metric in ['total_voters', 'male_voters', 'female_voters']:
+                ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{int(x):,}'))
+            elif metric == 'turnout_rate':
+                ax.set_ylim(0, 100)
+            elif metric == 'candidate_ratio':
+                ax.set_ylim(bottom=1.0)
+        
+        plt.tight_layout()
+        return fig
+
+app = App(app_ui, server)
+
