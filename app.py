@@ -110,6 +110,7 @@ app_ui = ui.page_sidebar(
               style="text-align: center; color: #1e40af; margin-bottom: 30px; padding: 20px; background-color: #f1f5f9; border-radius: 10px;"),
         style="margin-bottom: 20px;"
     ),
+    #検索結果タイトル
     ui.card(
         ui.card_header("検索結果"),
         ui.output_data_frame("municipalities_table")
@@ -123,7 +124,7 @@ def server(input, output, session):
         
         # 頭文字による絞り込み
         if input.initial_letter():
-            # ひらがなの行による分類（ら行・わ行を除去）
+            # ひらがなの行による分類（ら行・わ行を除去ないので）
             hiragana_ranges = {
                 "あ": ["あ", "い", "う", "え", "お"],
                 "か": ["か", "き", "く", "け", "こ", "が", "ぎ", "ぐ", "げ", "ご"],
