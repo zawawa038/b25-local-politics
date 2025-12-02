@@ -239,7 +239,6 @@ app_ui = ui.page_sidebar(
             sep=""
         ),
         ui.br(),
-        #まだ定数比広報者数は棒グラフになっていません
         ui.input_checkbox_group(
             "selected_metrics",
             "表示する統計項目を選択してください:",
@@ -254,6 +253,7 @@ app_ui = ui.page_sidebar(
         ),
         ui.br(),
         ui.p("※ 複数項目を選択すると、同じグラフ内に重ねて表示されます。"),
+        ui.p("※ 定数比候補者数は棒グラフで表示されます。"),
         ui.p("※ データはサンプルデータです。")
     ),
     ui.card(
@@ -297,7 +297,7 @@ def server(input, output, session):
         colors = ['#2563eb', '#dc2626', '#059669', '#7c3aed', '#ea580c']
         markers = ['o', 's', '^', 'D', 'v']
         
-        # 一つのグラフに全ての選択された項目を表示
+        # フィギュアサイズを調整し、上部マージンを確保
         fig, ax1 = plt.subplots(figsize=(12, 8))
         
         # 左軸用の項目（投票率、候補者比率）
@@ -309,14 +309,26 @@ def server(input, output, session):
         # 左軸にプロット
         lines1 = []
         labels1 = []
+        bar_width = 0.6  # 棒グラフの幅
+        
         for i, metric in enumerate(left_axis_metrics):
-            line = ax1.plot(data['year'], data[metric], 
-                           marker=markers[i % len(markers)], 
-                           linewidth=2.5, 
-                           markersize=7,
-                           color=colors[i % len(colors)], 
-                           label=metric_labels[metric])
-            lines1.extend(line)
+            if metric == 'candidate_ratio':
+                # 候補者比率は棒グラフで表示
+                bars = ax1.bar(data['year'], data[metric], 
+                              width=bar_width,
+                              alpha=0.7,
+                              color=colors[i % len(colors)], 
+                              label=metric_labels[metric])
+                lines1.append(bars)
+            else:
+                # その他は線グラフで表示
+                line = ax1.plot(data['year'], data[metric], 
+                               marker=markers[i % len(markers)], 
+                               linewidth=2.5, 
+                               markersize=7,
+                               color=colors[i % len(colors)], 
+                               label=metric_labels[metric])
+                lines1.extend(line)
             labels1.append(metric_labels[metric])
         
         # 左軸の設定
@@ -352,24 +364,26 @@ def server(input, output, session):
             # Y軸の値をフォーマット（カンマ区切り）
             ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{int(x):,}'))
         
-        # タイトル設定
+        # タイトル設定（padを大きく設定）
         year_range = input.year_range()
         title = f"選択された統計項目の推移 ({year_range[0]}年 - {year_range[1]}年)"
-        ax1.set_title(title, fontsize=14, fontweight='bold', pad=20)
+        ax1.set_title(title, fontsize=14, fontweight='bold', pad=30)
         
-        # 凡例の統合
+        # 凡例の位置を調整（少し下に移動）
         all_lines = lines1 + lines2
         all_labels = labels1 + labels2
         if all_lines:
-            ax1.legend(all_lines, all_labels, loc='upper left', bbox_to_anchor=(0.02, 0.98))
+            ax1.legend(all_lines, all_labels, loc='upper left', bbox_to_anchor=(0.02, 0.95))
         
         # グリッド
         ax1.grid(True, alpha=0.3)
         
         # X軸の年表示を調整
-        ax1.set_xlim(data['year'].min(), data['year'].max())
+        ax1.set_xlim(data['year'].min() - 0.5, data['year'].max() + 0.5)
         
-        plt.tight_layout()
+        # レイアウトの調整（右側マージンを拡大）
+        plt.subplots_adjust(top=0.9, bottom=0.1, left=0.1, right=0.85)
+        
         return fig
 
 app = App(app_ui, server)
