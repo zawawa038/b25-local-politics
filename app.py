@@ -210,19 +210,27 @@ def generate_sample_data(start_year, end_year):
         'year': years,
         'turnout_rate': [45 + np.random.normal(0, 5) for _ in years],
         'total_voters': [80000 + i * 2000 + np.random.normal(0, 3000) for i in range(len(years))],
-        'candidate_ratio': [1.5 + np.random.normal(0, 0.3) for _ in years],
         'male_voters': [38000 + i * 1000 + np.random.normal(0, 1500) for i in range(len(years))],
         'female_voters': [42000 + i * 1000 + np.random.normal(0, 1500) for i in range(len(years))]
     }
     
+    # 候補者数と定数のデータを生成
+    data['candidate_count'] = [25 + np.random.randint(-3, 4) for _ in years]  # 候補者数
+    data['fixed_seats'] = [20 + np.random.randint(-1, 2) for _ in years]  # 定数（候補者数より少ない）
+    
+    # 定数比候補者数の計算（定数/候補者数）
+    data['candidate_ratio'] = [data['fixed_seats'][i] / data['candidate_count'][i] for i in range(len(years))]
+    
     # 負の値を防ぐ
-    for key in ['turnout_rate', 'total_voters', 'candidate_ratio', 'male_voters', 'female_voters']:
+    for key in ['turnout_rate', 'total_voters', 'male_voters', 'female_voters']:
         if key == 'turnout_rate':
             data[key] = [max(0, min(100, val)) for val in data[key]]  # 0-100%の範囲
-        elif key == 'candidate_ratio':
-            data[key] = [max(1.0, val) for val in data[key]]  # 最小1.0
         else:
             data[key] = [max(0, int(val)) for val in data[key]]  # 負の値を防ぐ
+    
+    # 候補者数と定数も負の値を防ぐ
+    data['candidate_count'] = [max(1, val) for val in data['candidate_count']]
+    data['fixed_seats'] = [max(1, min(val, data['candidate_count'][i])) for i, val in enumerate(data['fixed_seats'])]
     
     return pd.DataFrame(data)
 
@@ -253,7 +261,7 @@ app_ui = ui.page_sidebar(
         ),
         ui.br(),
         ui.p("※ 複数項目を選択すると、同じグラフ内に重ねて表示されます。"),
-        ui.p("※ 定数比候補者数は棒グラフで表示されます。"),
+        ui.p("※ 定数比候補者数は棒グラフで表示されます（水色：候補者数、グレー：定数）。"),
         ui.p("※ データはサンプルデータです。")
     ),
     ui.card(
@@ -313,13 +321,22 @@ def server(input, output, session):
         
         for i, metric in enumerate(left_axis_metrics):
             if metric == 'candidate_ratio':
-                # 候補者比率は棒グラフで表示
-                bars = ax1.bar(data['year'], data[metric], 
+                # 候補者数を水色で表示（背景）
+                bars1 = ax1.bar(data['year'], data['candidate_count'], 
                               width=bar_width,
-                              alpha=0.7,
-                              color=colors[i % len(colors)], 
-                              label=metric_labels[metric])
-                lines1.append(bars)
+                              alpha=0.6,
+                              color='#87ceeb',  # 水色
+                              label='候補者数')
+                
+                # 定数をグレーで表示（前景、重ね合わせ）
+                bars2 = ax1.bar(data['year'], data['fixed_seats'], 
+                              width=bar_width,
+                              alpha=0.8,
+                              color='#808080',  # グレー
+                              label='定数')
+                
+                lines1.extend([bars1, bars2])
+                labels1.extend(['候補者数', '定数'])
             else:
                 # その他は線グラフで表示
                 line = ax1.plot(data['year'], data[metric], 
@@ -329,17 +346,17 @@ def server(input, output, session):
                                color=colors[i % len(colors)], 
                                label=metric_labels[metric])
                 lines1.extend(line)
-            labels1.append(metric_labels[metric])
+                labels1.append(metric_labels[metric])
         
         # 左軸の設定
         if left_axis_metrics:
             ax1.set_xlabel('年', fontsize=12)
             if 'turnout_rate' in left_axis_metrics and 'candidate_ratio' in left_axis_metrics:
-                ax1.set_ylabel('投票率 (%) / 候補者比率', fontsize=12, color=colors[0])
+                ax1.set_ylabel('投票率 (%) / 人数', fontsize=12, color=colors[0])
             elif 'turnout_rate' in left_axis_metrics:
                 ax1.set_ylabel('投票率 (%)', fontsize=12, color=colors[0])
             elif 'candidate_ratio' in left_axis_metrics:
-                ax1.set_ylabel('候補者比率', fontsize=12, color=colors[0])
+                ax1.set_ylabel('人数', fontsize=12, color=colors[0])
             ax1.tick_params(axis='y', labelcolor=colors[0])
         
         # 右軸の設定
