@@ -14,7 +14,4 @@ def get_data(url, name):
     # テーブルリストからデータフレームを取得
     df = tables[0]
     # csvファイルに出力
-    df.to_csv(Path(__file__).parent / f"data/{name}", index=False)
-
-
-    return df
+    df.to_csv(Path(__file__).parent / f"data/{name}.csv", index=False)

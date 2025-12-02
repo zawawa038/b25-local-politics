@@ -1,0 +1,7 @@
+README.md
+pyproject.toml
+b25_local_politics.egg-info/PKG-INFO
+b25_local_politics.egg-info/SOURCES.txt
+b25_local_politics.egg-info/dependency_links.txt
+b25_local_politics.egg-info/requires.txt
+b25_local_politics.egg-info/top_level.txt

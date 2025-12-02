@@ -6,7 +6,7 @@ import pandas as pd
 import typer
 import shared
 
-# uv run get_data.py get_data (url) (自治体名の略_西暦) と入力してください
+# uv run get_data.py get-data (url) (自治体名の略_西暦) と入力してください
 
 app = typer.Typer()
 
