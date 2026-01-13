@@ -3,7 +3,19 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
-import japanize_matplotlib
+import warnings
+
+# matplotlibの警告を抑制
+warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
+
+# 日本語フォントの設定
+try:
+    import japanize_matplotlib
+except ImportError:
+    # japanize_matplotlibがない場合は手動でフォント設定
+    # DejaVu Sansを除外し、日本語対応フォントのみを指定
+    plt.rcParams['font.sans-serif'] = ['Hiragino Sans', 'Yu Gothic', 'Meiryo', 'MS Gothic', 'Arial Unicode MS', 'sans-serif']
+    plt.rcParams['axes.unicode_minus'] = False  # マイナス記号の文字化け対策
 
 # 市町村データとコードのマッピング
 municipalities_mapping = {
@@ -305,6 +317,7 @@ def server(input, output, session):
                 ax1.set_ylabel('投票率 (%) / 人数', fontsize=12, color=colors[0])
             elif 'turnout_rate' in left_axis_metrics:
                 ax1.set_ylabel('投票率 (%)', fontsize=12, color=colors[0])
+                ax1.set_ylim(20, 80)  # 投票率の縦軸を20-80%に固定
             elif 'candidate_ratio' in left_axis_metrics:
                 ax1.set_ylabel('人数', fontsize=12, color=colors[0])
             ax1.tick_params(axis='y', labelcolor=colors[0])
@@ -349,9 +362,9 @@ def server(input, output, session):
         # グリッド
         ax1.grid(True, alpha=0.3)
         
-        # X軸の年表示を調整
-        if 'year' in data.columns and len(data) > 0:
-            ax1.set_xlim(data['year'].min() - 0.5, data['year'].max() + 0.5)
+        # X軸の年表示を調整（year_rangeで固定）
+        year_range_values = input.year_range()
+        ax1.set_xlim(year_range_values[0] - 0.5, year_range_values[1] + 0.5)
         
         # レイアウトの調整
         plt.subplots_adjust(top=0.9, bottom=0.1, left=0.1, right=0.85)
