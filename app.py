@@ -180,10 +180,10 @@ app_ui = ui.page_sidebar(
             "表示する統計項目を選択してください:",
             choices={
                 "turnout_rate": "投票率 (%)",
-                "total_voters": "有権者数 (人)",
-                "candidate_ratio": "定数/候補者数比率",
+                "total_voters": "有権者数（合計）",
                 "male_voters": "有権者数（男性）",
                 "female_voters": "有権者数（女性）",
+                "candidate_ratio": "定数/候補者数比率",
                 "previous_turnout_rate": "前回投票率 (%)"
             },
             selected=["turnout_rate"]
@@ -270,10 +270,10 @@ def server(input, output, session):
         # メトリクス名とラベルのマッピング
         metric_labels = {
             "turnout_rate": "投票率 (%)",
-            "total_voters": "有権者数 (人)",
-            "candidate_ratio": "定数/候補者数比率",
+            "total_voters": "有権者数（合計）",
             "male_voters": "有権者数（男性）",
             "female_voters": "有権者数（女性）",
+            "candidate_ratio": "定数/候補者数比率",
             "previous_turnout_rate": "前回投票率 (%)"
         }
         
